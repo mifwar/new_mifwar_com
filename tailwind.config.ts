@@ -8,13 +8,23 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+      keyframes: {
+        "wiggle-right": {
+          "0% 100%": { transform: "rotate(-50deg)" },
+          "50%": { transform: "rotate(50deg)" },
+        },
+        "wiggle-left": {
+          "0% 100%": { transform: "rotate(50deg)" },
+          "50%": { transform: "rotate(-50deg)" },
+        },
+      },
+      animation: {
+        "wiggle-right": "wiggle-right 0.2s ease-in-out",
+        "wiggle-left": "wiggle-left 0.2s ease-in-out",
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animated")],
+  darkMode: "selector",
 };
 export default config;
