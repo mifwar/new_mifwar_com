@@ -1,11 +1,15 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
+import Link from "next/link";
+
 import { usePathname } from "next/navigation";
 import useOutsideClick from "@/hooks/useOutsideClick";
 
 import HamburgerMenu from "@/components/icon/hamburgerMenu";
-import Link from "next/link";
+import SidebarWrapper from "@/components/sidebarWrapper";
+import Overlay from "@/components/overlay";
+
 import { MenuItem, MENU_ITEMS } from "./menu";
 
 import { cn } from "@/lib/utils";
@@ -23,7 +27,7 @@ const NavLink: React.FC<NavLinkProps> = ({ item, isActive, toggleMenu }) => {
       "group relative py-4 px-6 transition-all duration-200 ease-in-out w-full",
       "text-neutral-600 hover:text-neutral-950 dark:text-neutral-400 dark:hover:text-white",
       isActive &&
-        "text-neutral-950 dark:text-white bg-neutral-100 dark:bg-neutral-800",
+        "text-neutral-950 dark:text-white bg-neutral-200 dark:bg-neutral-800",
     ),
     rel: "noopener noreferrer",
     ...(item.isNewTab && {
@@ -44,13 +48,21 @@ const NavLink: React.FC<NavLinkProps> = ({ item, isActive, toggleMenu }) => {
 const MobileMenu: React.FC = () => {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
+  const toggleMenu = useCallback(() => {
+    setIsAnimating(true);
+    setIsMenuOpen((prev) => !prev);
+  }, []);
+
+  const handleAnimationEnd = useCallback(() => {
+    setIsAnimating(false);
+  }, []);
 
   useOutsideClick(menuRef, () => {
     if (isMenuOpen) {
-      setIsMenuOpen(false);
+      toggleMenu();
     }
   });
 
@@ -66,14 +78,10 @@ const MobileMenu: React.FC = () => {
             aria-label="Toggle menu"
           />
         </div>
-        <aside
-          id="sidebar-menu"
-          className={cn(
-            "fixed left-0 top-0 flex h-full w-full max-w-xs flex-col items-center justify-center bg-white transition duration-500 ease-out-expo md:hidden dark:bg-neutral-900",
-            isMenuOpen
-              ? "z-20 translate-x-0 opacity-100"
-              : "-z-10 -translate-x-full opacity-0",
-          )}
+        <SidebarWrapper
+          isMenuOpen={isMenuOpen}
+          isAnimating={isAnimating}
+          onAnimationEnd={handleAnimationEnd}
         >
           <div className="flex h-full w-full flex-col items-center justify-start gap-3 py-16">
             {MENU_ITEMS.map((item) => {
@@ -88,13 +96,12 @@ const MobileMenu: React.FC = () => {
               );
             })}
           </div>
-        </aside>
+        </SidebarWrapper>
       </div>
-      <div
-        className={cn(
-          "fixed left-0 top-0 block h-full w-full bg-white/80 transition duration-100 md:hidden dark:bg-neutral-900/80",
-          isMenuOpen ? "z-10 opacity-100" : "-z-10 opacity-0",
-        )}
+      <Overlay
+        isMenuOpen={isMenuOpen}
+        isAnimating={isAnimating}
+        onTransitionEnd={handleAnimationEnd}
       />
     </>
   );
